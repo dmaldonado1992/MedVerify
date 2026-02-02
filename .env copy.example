@@ -1,0 +1,24 @@
+# Server
+PORT=3000
+NODE_ENV=development
+
+# Database (PostgreSQL)
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=videos_db
+DB_USER=postgres
+DB_PASSWORD=your_password
+
+# Storage (Backblaze B2 o Oracle Cloud)
+STORAGE_ENDPOINT=https://s3.us-west-002.backblazeb2.com
+STORAGE_REGION=us-west-002
+STORAGE_ACCESS_KEY=your_access_key
+STORAGE_SECRET_KEY=your_secret_key
+STORAGE_BUCKET=videos-bucket
+
+# Email (Resend)
+RESEND_API_KEY=your_resend_api_key
+EMAIL_FROM=videos@yourdomain.com
+
+# Frontend URL (para CORS)
+FRONTEND_URL=http://localhost:5173

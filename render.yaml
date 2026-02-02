@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: video-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DB_HOST
+        generateValue: true
+      - key: DB_PORT
+        value: 5432
+      - key: DB_NAME
+        value: videos_db
+      - key: DB_USER
+        generateValue: true
+      - key: DB_PASSWORD
+        generateValue: true
+      - key: STORAGE_ENDPOINT
+        generateValue: true
+      - key: STORAGE_REGION
+        value: us-west-002
+      - key: STORAGE_ACCESS_KEY
+        generateValue: true
+      - key: STORAGE_SECRET_KEY
+        generateValue: true
+      - key: STORAGE_BUCKET
+        generateValue: true
+      - key: RESEND_API_KEY
+        generateValue: true
+      - key: EMAIL_FROM
+        generateValue: true
+      - key: FRONTEND_URL
+        value: http://localhost:5173
+    healthCheckPath: /
+    headers:
+      - http_path: /
+        header_value: application/json
