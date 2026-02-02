@@ -37,6 +37,3 @@ services:
       - key: FRONTEND_URL
         value: http://localhost:5173
     healthCheckPath: /
-    headers:
-      - http_path: /
-        header_value: application/json
