@@ -11,7 +11,7 @@ services:
       - key: PORT
         value: 3000
       - key: DB_HOST
-        value: ep-bold-snow-ahobrvb8-pooler.c-3.us-east-1.aws.neon.tech
+        value: ep-proud-band-aig9nvoc-pooler.c-4.us-east-1.aws.neon.tech
       - key: DB_PORT
         value: 5432
       - key: DB_NAME
