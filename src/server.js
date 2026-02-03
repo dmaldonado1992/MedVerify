@@ -4,6 +4,7 @@ const swaggerUi = require('swagger-ui-express');
 require('dotenv').config();
 
 const videoRoutes = require('./routes/videoRoutes');
+const userRoutes = require('./routes/userRoutes');
 const swaggerSpec = require('./config/swagger');
 
 const app = express();
@@ -47,6 +48,7 @@ app.get('/', (req, res) => {
 });
 
 // Routes
+app.use('/api/users', userRoutes);
 app.use('/api/videos', videoRoutes);
 
 // Error handler

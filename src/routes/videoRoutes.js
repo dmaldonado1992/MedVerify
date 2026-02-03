@@ -159,4 +159,50 @@ router.get('/:videoId/url', getVideoUrl);
  */
 router.get('/list', listVideos);
 
+/**
+ * @swagger
+ * /api/videos/test-email:
+ *   post:
+ *     tags:
+ *       - Videos
+ *     summary: Enviar email de prueba
+ *     description: Envía un correo de prueba usando la misma plantilla que `sendVideoEmail`. Permite elegir proveedor con `provider` en el body.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: test@example.com
+ *               url:
+ *                 type: string
+ *                 example: https://example.com/video.mp4
+ *               filename:
+ *                 type: string
+ *                 example: video.mp4
+ *               provider:
+ *                 type: string
+ *                 example: gmail
+ *                 description: Optional override for EMAIL_PROVIDER (e.g., 'gmail' or 'resend')
+ *     responses:
+ *       200:
+ *         description: Email enviado exitosamente (prueba)
+ *       400:
+ *         description: Parámetros faltantes
+ *       500:
+ *         description: Error al enviar email
+ */
+router.post('/test-email', express.json(), async (req, res, next) => {
+	try {
+		const { testSendEmail } = require('../controllers/videoController');
+		return await testSendEmail(req, res);
+	} catch (err) {
+		next(err);
+	}
+});
+
 module.exports = router;

@@ -1,33 +1,77 @@
 const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-async function sendVideoEmail(userEmail, videoUrl, filename) {
+function buildVideoEmailHtml(filename, videoUrl) {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #333;">¡Video disponible!</h2>
+      <p>Tu video <strong>${filename}</strong> ha sido procesado correctamente.</p>
+      <a href="${videoUrl}" 
+         style="display: inline-block; padding: 12px 24px; background: #007bff; 
+                color: white; text-decoration: none; border-radius: 5px; margin: 20px 0;">
+        Ver Video
+      </a>
+      <p style="color: #666; font-size: 12px;">
+        Este enlace expira en 24 horas por seguridad.
+      </p>
+    </div>
+  `;
+}
+
+async function sendVideoEmailResend(userEmail, videoUrl, filename) {
+  if (!resend) return console.warn('Resend API key not configured');
   try {
     await resend.emails.send({
       from: process.env.EMAIL_FROM,
       to: userEmail,
-      subject: `Tu video "${filename}" está listo`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">¡Video disponible!</h2>
-          <p>Tu video <strong>${filename}</strong> ha sido procesado correctamente.</p>
-          <a href="${videoUrl}" 
-             style="display: inline-block; padding: 12px 24px; background: #007bff; 
-                    color: white; text-decoration: none; border-radius: 5px; margin: 20px 0;">
-            Ver Video
-          </a>
-          <p style="color: #666; font-size: 12px;">
-            Este enlace expira en 24 horas por seguridad.
-          </p>
-        </div>
-      `,
+      subject: `Med Verify - El video de tu estudio "${filename}" está listo`,
+      html: buildVideoEmailHtml(filename, videoUrl),
     });
-    console.log('✅ Email sent to:', userEmail);
+    console.log('✅ Resend: Email sent to:', userEmail);
   } catch (error) {
-    console.error('❌ Error sending email:', error);
+    console.error('❌ Resend: Error sending email:', error);
+    throw error;
   }
 }
 
-module.exports = { sendVideoEmail };
+async function sendVideoEmailGmail(userEmail, videoUrl, filename) {
+  // Requires these environment vars: GMAIL_USER, GMAIL_APP_PASSWORD (or GMAIL_PASS)
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD || process.env.GMAIL_PASS;
+  if (!user || !pass) {
+    console.warn('Gmail credentials not configured (GMAIL_USER/GMAIL_PASS)');
+    return;
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user,
+        pass,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_FROM || user,
+      to: userEmail,
+      subject: `Med Verify - El video de tu estudio "${filename}" está listo`,
+      html: buildVideoEmailHtml(filename, videoUrl),
+    });
+    console.log('✅ Gmail: Email sent:', info.messageId);
+  } catch (error) {
+    console.error('❌ Gmail: Error sending email:', error);
+    throw error;
+  }
+}
+
+async function sendVideoEmail(userEmail, videoUrl, filename) {
+  const provider = (process.env.EMAIL_PROVIDER || 'resend').toLowerCase();
+  if (provider === 'gmail') return sendVideoEmailGmail(userEmail, videoUrl, filename);
+  return sendVideoEmailResend(userEmail, videoUrl, filename);
+}
+
+module.exports = { sendVideoEmail, sendVideoEmailGmail, sendVideoEmailResend, buildVideoEmailHtml };

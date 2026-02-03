@@ -11,25 +11,25 @@ services:
       - key: PORT
         value: 3000
       - key: DB_HOST
-        generateValue: true
+        value: ep-bold-snow-ahobrvb8-pooler.c-3.us-east-1.aws.neon.tech
       - key: DB_PORT
         value: 5432
       - key: DB_NAME
-        value: videos_db
+        value: MedVerify
       - key: DB_USER
-        generateValue: true
+        value: neondb_owner
       - key: DB_PASSWORD
-        generateValue: true
+        sync: false
       - key: STORAGE_ENDPOINT
-        generateValue: true
+        value: https://s3.us-east-1.wasabisys.com
       - key: STORAGE_REGION
-        value: us-west-002
+        value: us-east-1
       - key: STORAGE_ACCESS_KEY
-        generateValue: true
+        sync: false
       - key: STORAGE_SECRET_KEY
-        generateValue: true
+        sync: false
       - key: STORAGE_BUCKET
-        generateValue: true
+        sync: false
       - key: RESEND_API_KEY
         generateValue: true
       - key: EMAIL_FROM
