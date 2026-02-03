@@ -6,6 +6,7 @@ require('dotenv').config();
 const videoRoutes = require('./routes/videoRoutes');
 const userRoutes = require('./routes/userRoutes');
 const emailRoutes = require('./routes/emailRoutes');
+const authRoutes = require('./routes/authRoutes');
 const swaggerSpec = require('./config/swagger');
 const { logEmailConfig } = require('./config/email');
 
@@ -91,6 +92,7 @@ app.get('/', (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/emails', emailRoutes);
+app.use('/api/auth', authRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {
