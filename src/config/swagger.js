@@ -12,15 +12,13 @@ const options = {
         email: 'support@example.com',
       },
     },
+    // Use a relative server URL so Swagger UI requests use relative paths
+    // This avoids forcing 'http://localhost:3000' and works when served behind proxies
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Development Server',
-      },
-      {
-        url: 'https://api.example.com',
-        description: 'Production Server',
-      },
+        url: '/',
+        description: 'Relative server URL (use current origin)'
+      }
     ],
     components: {
       schemas: {
