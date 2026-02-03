@@ -11,9 +11,37 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
-}));
+// CORS: permitir orígenes configurables mediante FRONTEND_URL
+// FRONTEND_URL puede ser una lista separada por comas (ej: https://app.example.com,https://admin.example.com)
+const allowedOrigins = (process.env.FRONTEND_URL || '').split(',').map(s => s.trim()).filter(Boolean);
+const corsOptions = {
+  origin: function(origin, callback) {
+    // permitir solicitudes sin origin (herramientas como curl, servidores)
+    if (!origin) return callback(null, true);
+    // si no hay orígenes configurados permitir cualquiera
+    if (allowedOrigins.length === 0 || allowedOrigins.includes('*')) return callback(null, true);
+    // coincidencia directa con la lista permitida
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // permitir el origen que coincida con el host:port del servidor (ej: Swagger servido desde el mismo servidor)
+    try {
+      const u = new URL(origin);
+      const originHost = `${u.hostname}${u.port ? ':' + u.port : ''}`;
+      const serverHost = `${process.env.SERVER_HOST || 'localhost'}:${PORT}`;
+      if (originHost === serverHost) return callback(null, true);
+    } catch (e) {
+      // no parseable origin - rechazar más abajo
+    }
+
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
