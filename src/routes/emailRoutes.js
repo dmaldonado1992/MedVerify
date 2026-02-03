@@ -2,6 +2,40 @@ const express = require('express');
 const router = express.Router();
 const { sendVideoReadyEmail } = require('../services/emailService');
 
+/**
+ * @swagger
+ * /api/emails/brevo-send:
+ *   post:
+ *     tags:
+ *       - Emails
+ *     summary: Enviar email vía Brevo
+ *     description: Envía un email transaccional usando Brevo (requiere `BREVO_API_KEY`).
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               to:
+ *                 type: string
+ *                 format: email
+ *               subject:
+ *                 type: string
+ *               html:
+ *                 type: string
+ *             required:
+ *               - to
+ *               - subject
+ *               - html
+ *     responses:
+ *       200:
+ *         description: Email enviado correctamente
+ *       400:
+ *         description: Parámetros faltantes
+ *       500:
+ *         description: Error al enviar email
+ */
 // POST /api/emails/brevo-send - enviar email sencillo
 router.post('/brevo-send', async (req, res) => {
   try {
@@ -15,6 +49,39 @@ router.post('/brevo-send', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/emails/video-processed:
+ *   post:
+ *     tags:
+ *       - Emails
+ *     summary: Notificar que un video está listo
+ *     description: Envía un email al usuario indicando que su video ha sido procesado y está disponible.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userEmail:
+ *                 type: string
+ *                 format: email
+ *               videoUrl:
+ *                 type: string
+ *               userName:
+ *                 type: string
+ *             required:
+ *               - userEmail
+ *               - videoUrl
+ *     responses:
+ *       200:
+ *         description: Email de notificación enviado
+ *       400:
+ *         description: Parámetros faltantes
+ *       500:
+ *         description: Error al enviar email
+ */
 // POST /api/emails/video-processed - enviar email cuando video listo
 router.post('/video-processed', async (req, res) => {
   try {

@@ -28,19 +28,32 @@ pool.on('connect', () => {
 });
 
 pool.on('error', (err) => {
-  console.error('❌ Database connection error:', err.message);
+  console.error('❌ Database connection error:');
+  console.error(err);
+  console.error('Error details:', {
+    message: err && err.message,
+    code: err && err.code,
+    stack: err && err.stack
+  });
 });
 
 // Test de conexión al iniciar
 pool.query('SELECT NOW()', (err, result) => {
   if (err) {
-    console.error('❌ Database connection test failed:', err.message);
+    console.error('❌ Database connection test failed:');
+    console.error(err);
+    console.error('Error details:', {
+      message: err && err.message,
+      code: err && err.code,
+      stack: err && err.stack
+    });
     console.error('Connection details:', {
       host: process.env.DB_HOST,
       port: process.env.DB_PORT,
       database: process.env.DB_NAME,
       user: process.env.DB_USER
     });
+    console.error('Suggestions: - Verify DB host/port/user/password; - Ensure network access (firewall, VPC rules); - For Neon, ensure SSL settings are correct');
   } else {
     console.log('✅ Database connection test passed');
   }

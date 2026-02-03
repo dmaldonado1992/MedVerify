@@ -1,17 +1,19 @@
 const brevo = require('@getbrevo/brevo');
 require('dotenv').config();
 
-// Configurar API
+// Configurar API client (key se establece por envío)
 const apiInstance = new brevo.TransactionalEmailsApi();
-if (process.env.BREVO_API_KEY) {
-  apiInstance.setApiKey(
-    brevo.TransactionalEmailsApiApiKeys.apiKey,
-    process.env.BREVO_API_KEY
-  );
-}
 
 async function sendEmail(to, subject, html) {
   try {
+    if (!process.env.BREVO_API_KEY) {
+      throw new Error('BREVO_API_KEY not configured in environment');
+    }
+    apiInstance.setApiKey(
+      brevo.TransactionalEmailsApiApiKeys.apiKey,
+      process.env.BREVO_API_KEY
+    );
+
     const sendSmtpEmail = {
       sender: {
         email: process.env.EMAIL_FROM,

@@ -69,8 +69,19 @@ async function sendVideoEmailGmail(userEmail, videoUrl, filename) {
 }
 
 async function sendVideoEmail(userEmail, videoUrl, filename) {
-  const provider = (process.env.EMAIL_PROVIDER || 'resend').toLowerCase();
-  if (provider === 'gmail') return sendVideoEmailGmail(userEmail, videoUrl, filename);
+  const provider = ("gmail"|| 'resend').toLowerCase();
+  
+  console.log('📧 EMAIL CONFIG:');
+  console.log('  Provider:', provider);
+  console.log('  RESEND_API_KEY:', process.env.RESEND_API_KEY ? '✅ Set' : '❌ Missing');
+  console.log('  GMAIL_USER:', process.env.GMAIL_USER || '❌ Missing');
+  console.log('  GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? '✅ Set' : '❌ Missing');
+  console.log('  EMAIL_FROM:', process.env.EMAIL_FROM || '❌ Missing');
+  console.log('  Sending to:', userEmail);
+  
+  if (provider === 'gmail') {
+    return sendVideoEmailGmail(userEmail, videoUrl, filename);
+  }
   return sendVideoEmailResend(userEmail, videoUrl, filename);
 }
 
