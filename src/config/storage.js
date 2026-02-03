@@ -1,4 +1,5 @@
 const { S3Client } = require('@aws-sdk/client-s3');
+const { removeChecksumMiddleware } = require('@aws-sdk/middleware-flexible-checksums');
 require('dotenv').config();
 
 // Validar que las variables requeridas estén configuradas
@@ -12,8 +13,10 @@ if (missingVars.length > 0) {
 }
 
 // Configuración de Wasabi (S3-compatible)
+// CRÍTICO: Wasabi no soporta el parámetro x-amz-checksum-mode
+// Necesitamos deshabilitar checksums completamente
 const storageClient = new S3Client({
-  region: process.env.STORAGE_REGION,
+  region: process.env.STORAGE_REGION || 'us-east-1',
   endpoint: process.env.STORAGE_ENDPOINT,
   credentials: {
     accessKeyId: process.env.STORAGE_ACCESS_KEY,
@@ -21,7 +24,19 @@ const storageClient = new S3Client({
   },
   // Configuración específica para Wasabi
   forcePathStyle: true,
+  s3BucketEndpoint: false,
+  // Deshabilitar checksums: AWS SDK v3 agrega x-amz-checksum-mode automaticamente
+  // Esto lo evita completamente
+  requestChecksumCalculation: 'when_required',
+  serviceId: 's3',
 });
+
+// Remover TODAS las middleware relacionadas con checksums
+try {
+  storageClient.middlewareStack.remove('flexibleChecksumRequestHandler');
+} catch (e) {
+  // Ignorar si ya no existe
+}
 
 console.log('✅ Storage configurado con Wasabi');
 console.log(`   Endpoint: ${process.env.STORAGE_ENDPOINT}`);
