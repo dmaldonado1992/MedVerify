@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { sendVideoReadyEmail } = require('../services/emailService');
+const emailService = require('../services/emailService');
+const { sendVideoReadyEmail } = emailService;
 
 /**
  * @swagger
@@ -91,6 +92,66 @@ router.post('/video-processed', async (req, res) => {
     res.json({ success: true, result });
   } catch (err) {
     console.error('Error /video-processed:', err);
+    res.status(500).json({ success: false, error: err.message || String(err) });
+  }
+});
+
+/**
+ * @swagger
+ * /api/emails/gmail-send:
+ *   post:
+ *     tags:
+ *       - Emails
+ *     summary: Enviar notificación de video vía Gmail
+ *     description: Reutiliza la plantilla de notificación de video pero envía el correo usando Gmail (requiere credenciales GMAIL_USER y GMAIL_APP_PASSWORD).
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userEmail:
+ *                 type: string
+ *                 format: email
+ *               videoUrl:
+ *                 type: string
+ *               userName:
+ *                 type: string
+ *             required:
+ *               - userEmail
+ *               - videoUrl
+ *     responses:
+ *       200:
+ *         description: Email enviado correctamente vía Gmail
+ *       400:
+ *         description: Parámetros faltantes
+ *       500:
+ *         description: Error al enviar email
+ */
+router.post('/gmail-send', async (req, res) => {
+  try {
+    const { userEmail, videoUrl, userName } = req.body;
+    if (!userEmail || !videoUrl) return res.status(400).json({ error: 'userEmail and videoUrl required' });
+    const result = await emailService.sendVideoReadyEmail(userEmail, videoUrl, userName, emailService.sendEmailGmail);
+    res.json({ success: true, result });
+  } catch (err) {
+    console.error('Error /gmail-send:', err);
+    res.status(500).json({ success: false, error: err.message || String(err) });
+  }
+});
+/**
+ * POST /api/emails/gmail-send
+ * Reutiliza la plantilla de `sendVideoReadyEmail` pero envía vía Gmail.
+ */
+router.post('/gmail-send', async (req, res) => {
+  try {
+    const { userEmail, videoUrl, userName } = req.body;
+    if (!userEmail || !videoUrl) return res.status(400).json({ error: 'userEmail and videoUrl required' });
+    const result = await emailService.sendVideoReadyEmail(userEmail, videoUrl, userName, emailService.sendEmailGmail);
+    res.json({ success: true, result });
+  } catch (err) {
+    console.error('Error /gmail-send:', err);
     res.status(500).json({ success: false, error: err.message || String(err) });
   }
 });

@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const brevoService = require('../services/emailService');
 
 function buildVideoEmailHtml(filename, videoUrl) {
   return `
@@ -69,10 +70,11 @@ async function sendVideoEmailGmail(userEmail, videoUrl, filename) {
 }
 
 async function sendVideoEmail(userEmail, videoUrl, filename) {
-  const provider = ("gmail"|| 'resend').toLowerCase();
+  const provider = (process.env.EMAIL_PROVIDER || 'resend').toLowerCase();
   
   console.log('📧 EMAIL CONFIG:');
   console.log('  Provider:', provider);
+  console.log('  BREVO_API_KEY:', process.env.BREVO_API_KEY ? '✅ Set' : '❌ Missing');
   console.log('  RESEND_API_KEY:', process.env.RESEND_API_KEY ? '✅ Set' : '❌ Missing');
   console.log('  GMAIL_USER:', process.env.GMAIL_USER || '❌ Missing');
   console.log('  GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? '✅ Set' : '❌ Missing');
@@ -80,9 +82,50 @@ async function sendVideoEmail(userEmail, videoUrl, filename) {
   console.log('  Sending to:', userEmail);
   
   if (provider === 'gmail') {
-    return sendVideoEmailGmail(userEmail, videoUrl, filename);
+    try {
+      return await sendVideoEmailGmail(userEmail, videoUrl, filename);
+    } catch (err) {
+      console.error('Gmail send failed, attempting fallback provider:', err && err.message);
+      // fallback to Resend if available
+      if (resend) {
+        try {
+          return await sendVideoEmailResend(userEmail, videoUrl, filename);
+        } catch (err2) {
+          console.error('Fallback Resend also failed:', err2 && err2.message);
+          throw err2;
+        }
+      }
+      throw err;
+    }
   }
+  if (provider === 'resend') {
+    return sendVideoEmailResend(userEmail, videoUrl, filename);
+  }
+
+  if (provider === 'brevo') {
+    try {
+      return await brevoService.sendVideoReadyEmail(userEmail, videoUrl, undefined);
+    } catch (err) {
+      console.error('Brevo send failed, attempting fallback to Resend:', err && err.message);
+      if (resend) return await sendVideoEmailResend(userEmail, videoUrl, filename);
+      throw err;
+    }
+  }
+
+  // default fallback
   return sendVideoEmailResend(userEmail, videoUrl, filename);
 }
 
 module.exports = { sendVideoEmail, sendVideoEmailGmail, sendVideoEmailResend, buildVideoEmailHtml };
+
+function logEmailConfig() {
+  const provider = (process.env.EMAIL_PROVIDER || 'resend').toLowerCase();
+  console.log('📧 EMAIL CONFIG:');
+  console.log('  Provider:', provider);
+  console.log('  RESEND_API_KEY:', process.env.RESEND_API_KEY ? '✅ Set' : '❌ Missing');
+  console.log('  GMAIL_USER:', process.env.GMAIL_USER || '❌ Missing');
+  console.log('  GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? '✅ Set' : '❌ Missing');
+  console.log('  EMAIL_FROM:', process.env.EMAIL_FROM || '❌ Missing');
+}
+
+module.exports.logEmailConfig = logEmailConfig;

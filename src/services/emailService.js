@@ -1,4 +1,5 @@
 const brevo = require('@getbrevo/brevo');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 // Configurar API client (key se establece por envío)
@@ -33,7 +34,7 @@ async function sendEmail(to, subject, html) {
   }
 }
 
-async function sendVideoReadyEmail(to, videoUrl, userName) {
+async function sendVideoReadyEmail(to, videoUrl, userName, sendFn) {
   const subject = 'Tu video está listo';
   const html = `
     <!DOCTYPE html>
@@ -70,7 +71,36 @@ async function sendVideoReadyEmail(to, videoUrl, userName) {
     </html>
   `;
 
-  return await sendEmail(to, subject, html);
+  const sender = sendFn || sendEmail;
+  return await sender(to, subject, html);
 }
 
 module.exports = { sendEmail, sendVideoReadyEmail };
+
+async function sendEmailGmail(to, subject, html) {
+  try {
+    const user = process.env.GMAIL_USER;
+    const pass = process.env.GMAIL_APP_PASSWORD || process.env.GMAIL_PASS;
+    if (!user || !pass) throw new Error('Gmail credentials not configured (GMAIL_USER/GMAIL_APP_PASSWORD)');
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user, pass },
+    });
+
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_FROM || user,
+      to,
+      subject,
+      html,
+    });
+
+    console.log('✅ Gmail service: Email sent:', info && info.messageId);
+    return info;
+  } catch (error) {
+    console.error('❌ Gmail service: Error sending email:', error && error.message);
+    throw error;
+  }
+}
+
+module.exports.sendEmailGmail = sendEmailGmail;

@@ -6,7 +6,8 @@ const { Hash } = require('@smithy/hash-node');
 const { PutObjectCommand, GetObjectCommand, S3Client } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const { storageClient, bucket } = require('../config/storage');
-const { sendVideoEmail } = require('../config/email');
+const { sendVideoEmail, buildVideoEmailHtml } = require('../config/email');
+const emailService = require('../services/emailService');
 const pool = require('../config/database');
 require('dotenv').config();
 
@@ -113,70 +114,68 @@ async function generatePreviewUrl(bucket, key, expiresIn, mode) {
 async function uploadVideo(req, res) {
   try {
     const file = req.file;
-    const { userId, userEmail } = req.body;
+    const { userId, userEmail, userName } = req.body;
 
     if (!file) {
-      return res.status(400).json({
-        status: 400,
-        error: 'No se recibiÃ³ ningÃºn archivo'
-      });
+      return res.status(400).json({ status: 400, error: 'No se recibió ningún archivo' });
     }
 
     if (!userId) {
-      return res.status(400).json({
-        status: 400,
-        error: 'El userId es requerido'
-      });
+      return res.status(400).json({ status: 400, error: 'El userId es requerido' });
     }
 
-    // âœ… SOLUCIÃ“N 2: Generar nombre simple sin caracteres especiales
     const timestamp = Date.now();
     const extension = file.originalname.split('.').pop().toLowerCase();
     const videoKey = `users/${userId}/videos/${timestamp}.${extension}`;
 
-    console.log('ðŸ“¤ Subiendo video a Wasabi...');
+    console.log('📤 Subiendo video a Wasabi...');
     console.log(`   Key: ${videoKey}`);
     console.log(`   Nombre original: ${file.originalname}`);
 
-    // Subir a storage (Wasabi) - sin problemas de encoding
     await storageClient.send(
       new PutObjectCommand({
         Bucket: bucket,
-        Key: videoKey,  // âœ… Key simple sin caracteres especiales
+        Key: videoKey,
         Body: file.buffer,
         ContentType: file.mimetype,
-        // âœ… Metadatos simples sin caracteres especiales (Wasabi los incluye en la firma)
-        Metadata: {
-          userId: String(userId),
-          uploadDate: new Date().toISOString(),
-        },
+        Metadata: { userId: String(userId), uploadDate: new Date().toISOString() },
       })
     );
 
-    console.log('âœ… Video subido a Wasabi');
+    console.log('✅ Video subido a Wasabi');
 
-    // Generar URL temporal (24 horas)
-    const videoUrl = await generateCleanWasabiUrl(bucket, videoKey, 3600);
-
-    // âœ… URL generada sin x-amz-checksum-mode
-    console.log('âœ… URL generada');
-  console.log('âœ… URL generada Video Key:', videoKey);
+    const videoUrl = await generateCleanWasabiUrl(bucket, videoKey, 172800);
+    console.log('✅ URL generada Video Key:', videoKey);
     console.log(`   URL: ${videoUrl.substring(0, 100)}...`);
 
-    // Guardar en base de datos
-    console.log('ðŸ’¾ Guardando en base de datos...');
+    console.log('💾 Guardando en base de datos...');
     const result = await pool.query(
       `INSERT INTO videos (user_id, video_key, filename, size, mime_type, url) 
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [userId, videoKey, file.originalname, file.size, file.mimetype, videoUrl]  // âœ… URL directa
+      [userId, videoKey, file.originalname, file.size, file.mimetype, videoUrl]
     );
 
-    console.log('âœ… Video guardado en BD');
+    console.log('✅ Video guardado en BD');
 
-    // Enviar email
+    // Enviar email según EMAIL_PROVIDER (gmail | brevo | fallback)
     if (userEmail) {
-      console.log('ðŸ“§ Enviando email de notificaciÃ³n...' + userEmail);
-      await sendVideoEmail(userEmail, videoUrl, file.originalname);
+      const provider = (process.env.EMAIL_PROVIDER || '').toLowerCase();
+      console.log('✉️ Enviando email de notificación...', userEmail, 'via', provider || 'default');
+      try {
+        if (provider === 'gmail') {
+          const mailResult = await emailService.sendVideoReadyEmail(userEmail, videoUrl, userName || file.originalname, emailService.sendEmailGmail);
+          console.log('Gmail send result:', mailResult && (mailResult.messageId || mailResult));
+        } else if (provider === 'brevo') {
+          const subject = 'Tu video está listo';
+          const html = buildVideoEmailHtml(file.originalname, videoUrl);
+          const mailResult = await emailService.sendEmail(userEmail, subject, html);
+          console.log('Brevo send result:', mailResult && mailResult.messageId ? mailResult.messageId : mailResult);
+        } else {
+          await sendVideoEmail(userEmail, videoUrl, file.originalname);
+        }
+      } catch (err) {
+        console.error('Error sending notification email:', err && err.message);
+      }
     }
 
     res.status(201).json({
@@ -185,23 +184,18 @@ async function uploadVideo(req, res) {
       message: 'Video subido exitosamente',
       data: {
         videoId: result.rows[0].id,
-        filename: file.originalname,  // âœ… Nombre original para mostrar al usuario
-        simpleFilename: `${timestamp}.${extension}`,  // Nombre simple en S3
+        filename: file.originalname,
+        simpleFilename: `${timestamp}.${extension}`,
         size: file.size,
         mime_type: file.mimetype,
-        url: videoUrl,  // âœ… URL directa sin parÃ¡metros problemÃ¡ticos
+        url: videoUrl,
         created_at: result.rows[0].created_at,
       },
     });
-
   } catch (error) {
-    console.error('âŒ Error uploading video:', error.message);
+    console.error('❌ Error uploading video:', error && error.message);
     console.error('   Details:', error);
-    res.status(500).json({
-      status: 500,
-      error: 'Error al subir el video',
-      details: error.message
-    });
+    res.status(500).json({ status: 500, error: 'Error al subir el video', details: error.message });
   }
 }
 

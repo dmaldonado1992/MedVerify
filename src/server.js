@@ -7,6 +7,7 @@ const videoRoutes = require('./routes/videoRoutes');
 const userRoutes = require('./routes/userRoutes');
 const emailRoutes = require('./routes/emailRoutes');
 const swaggerSpec = require('./config/swagger');
+const { logEmailConfig } = require('./config/email');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -103,4 +104,10 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+  // Mostrar estado de configuración de email en el arranque
+  try {
+    logEmailConfig();
+  } catch (e) {
+    console.warn('Could not log email config:', e && e.message);
+  }
 });
