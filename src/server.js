@@ -13,11 +13,21 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 // CORS: permitir orígenes configurables mediante FRONTEND_URL
 // FRONTEND_URL puede ser una lista separada por comas (ej: https://app.example.com,https://admin.example.com)
-const allowedOrigins = (process.env.FRONTEND_URL || '').split(',').map(s => s.trim()).filter(Boolean);
+// Construir lista de orígenes permitidos a partir de FRONTEND_URL y valores por defecto
+const envOrigins = (process.env.FRONTEND_URL || '').split(',').map(s => s.trim()).filter(Boolean);
+const defaultOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+  'https://video-backend-y013.onrender.com'
+];
+const allowedOrigins = Array.from(new Set([...envOrigins, ...defaultOrigins]));
 const corsOptions = {
   origin: function(origin, callback) {
     // permitir solicitudes sin origin (herramientas como curl, servidores)
-    if (!origin) return callback(null, true);
+    // y aceptar origin === 'null' (caso de file:// o algunos contextos de Swagger local)
+    if (!origin || origin === 'null') return callback(null, true);
     // si no hay orígenes configurados permitir cualquiera
     if (allowedOrigins.length === 0 || allowedOrigins.includes('*')) return callback(null, true);
     // coincidencia directa con la lista permitida
