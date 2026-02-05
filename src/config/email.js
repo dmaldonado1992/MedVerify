@@ -37,18 +37,18 @@ function buildVideoEmailHtml(filename, videoUrl, password, userEmail) {
             </div>
             
             <!-- CREDENTIALS -->
-            <div class="credentials-box">
-              <div class="credentials-title">Credenciales de Acceso</div>
+            <div style="background: #f5f5f5; border-radius: 12px; padding: 40px 30px; margin: 35px 0; text-align: center;">
+              <div style="font-size: 14px; font-weight: 600; color: #555; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1.2px;">Credenciales de Acceso</div>
               
-              <div class="credential">
-                <label class="credential-label">📧 Correo Electrónico</label>
-                <div class="credential-value">${userEmail || 'Su correo electrónico'}</div>
+              <div style="margin-bottom: 30px;">
+                <div style="font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px;">📧 Correo Electrónico</div>
+                <div style="background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: 600; color: #333; word-break: break-all; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">${userEmail || 'Su correo electrónico'}</div>
               </div>
               
               ${password ? `
-              <div class="credential">
-                <label class="credential-label">🔐 Contraseña</label>
-                <div class="credential-value">${password}</div>
+              <div style="margin-bottom: 0;">
+                <div style="font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px;">🔐 Contraseña</div>
+                <div style="background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; font-family: 'Courier New', monospace; font-size: 28px; font-weight: 700; color: #333; word-break: break-all; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); letter-spacing: 2px;">${password}</div>
               </div>
               ` : ''}
             </div>
