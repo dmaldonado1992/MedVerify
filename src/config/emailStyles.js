@@ -82,25 +82,26 @@ const emailStyles = `
   }
   
   .credentials-box {
-    background: #f5f9ff;
-    border: 1px solid #d4e6f7;
-    border-radius: 10px;
-    padding: 30px;
+    background: #f5f5f5;
+    border: none;
+    border-radius: 12px;
+    padding: 40px 30px;
     margin: 35px 0;
+    text-align: center;
   }
   
   .credentials-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #0052a3;
-    margin-bottom: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 30px;
     text-align: center;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
   }
   
   .credential {
-    margin-bottom: 20px;
+    margin-bottom: 30px;
   }
   
   .credential:last-child {
@@ -109,25 +110,26 @@ const emailStyles = `
   
   .credential-label {
     display: block;
-    font-size: 12px;
-    font-weight: 700;
-    color: #0066cc;
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
+    letter-spacing: 0.8px;
+    margin-bottom: 12px;
   }
   
   .credential-value {
     background: white;
-    border: 1px solid #d4e6f7;
-    border-radius: 6px;
-    padding: 12px 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
     font-family: 'Courier New', monospace;
-    font-size: 15px;
-    font-weight: 600;
-    color: #0052a3;
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    letter-spacing: 2px;
     word-break: break-all;
-    letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
   
   .cta-button {
