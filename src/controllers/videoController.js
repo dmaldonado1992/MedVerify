@@ -138,7 +138,7 @@ async function uploadVideo(req, res) {
         Key: videoKey,
         Body: file.buffer,
         ContentType: file.mimetype,
-        Metadata: { userId: String(userId), uploadDate: new Date().toISOString() },
+        Metadata: { userEmail: userEmail, uploadDate: new Date().toISOString() },
       })
     );
 
