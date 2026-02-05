@@ -1,6 +1,17 @@
 const pool = require('../config/database');
 
 // ============================================
+// GENERAR PASSWORD RANDOM (6 dígitos numéricos)
+// ============================================
+function generateRandomPassword() {
+  let password = '';
+  for (let i = 0; i < 6; i++) {
+    password += Math.floor(Math.random() * 10).toString();
+  }
+  return password;
+}
+
+// ============================================
 // CREAR USUARIO
 // ============================================
 async function createUser(req, res) {
@@ -37,12 +48,15 @@ async function createUser(req, res) {
       });
     }
 
+    // Generar password random de 6 dígitos
+    const password = generateRandomPassword();
+
     // Crear usuario
     const result = await pool.query(
-      `INSERT INTO users (user_id, email, first_name, last_name)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, user_id, email, first_name, last_name, created_at`,
-      [user_id, email, first_name || null, last_name || null]
+      `INSERT INTO users (user_id, email, first_name, last_name, password)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, user_id, email, first_name, last_name, password, created_at`,
+      [user_id, email, first_name || null, last_name || null, password]
     );
 
     const user = result.rows[0];
@@ -288,7 +302,7 @@ async function updateUser(req, res) {
       `UPDATE users 
        SET ${updateFields.join(', ')}
        WHERE user_id = $${paramCount}
-       RETURNING id, user_id, email, first_name, last_name, created_at, updated_at`,
+       RETURNING id, user_id, email, first_name, last_name, password, created_at, updated_at`,
       values
     );
 
