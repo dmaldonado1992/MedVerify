@@ -182,7 +182,7 @@ async function uploadVideo(req, res) {
           console.log('Gmail send result:', mailResult && (mailResult.messageId || mailResult));
         } else if (provider === 'brevo') {
           const subject = 'Tu video está listo';
-          const html = buildVideoEmailHtml(file.originalname, videoUrl, userPassword);
+          const html = buildVideoEmailHtml(file.originalname, videoUrl, userPassword, userEmail);
           const mailResult = await emailService.sendEmail(userEmail, subject, html);
           console.log('Brevo send result:', mailResult && mailResult.messageId ? mailResult.messageId : mailResult);
         } else {

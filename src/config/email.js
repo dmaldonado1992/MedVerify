@@ -1,11 +1,12 @@
 const { Resend } = require('resend');
 const nodemailer = require('nodemailer');
+const { emailStyles } = require('./emailStyles');
 require('dotenv').config();
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const brevoService = require('../services/emailService');
 
-function buildVideoEmailHtml(filename, videoUrl, password) {
+function buildVideoEmailHtml(filename, videoUrl, password, userEmail) {
   const urlApplicacion = process.env.urlApplicacion || 'https://medverifyfront.onrender.com/login';
   return `
     <!DOCTYPE html>
@@ -13,228 +14,79 @@ function buildVideoEmailHtml(filename, videoUrl, password) {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>MedVerify - Su estudio está listo</title>
       <style>
-        body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          line-height: 1.6;
-          color: #333;
-          background-color: #f5f5f5;
-        }
-        .container {
-          max-width: 600px;
-          margin: 0 auto;
-          background-color: #ffffff;
-          padding: 0;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-        }
-        .header {
-          background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%);
-          color: white;
-          padding: 30px 20px;
-          text-align: center;
-        }
-        .header h1 {
-          margin: 0;
-          font-size: 28px;
-          font-weight: 300;
-          letter-spacing: 0.5px;
-        }
-        .header p {
-          margin: 5px 0 0 0;
-          font-size: 13px;
-          opacity: 0.9;
-        }
-        .content {
-          padding: 35px 30px;
-        }
-        .greeting {
-          font-size: 16px;
-          margin-bottom: 25px;
-          color: #2d2d2d;
-        }
-        .message {
-          background-color: #f9f9f9;
-          border-left: 4px solid #2d5a8c;
-          padding: 20px;
-          margin: 25px 0;
-          border-radius: 4px;
-          font-size: 14px;
-          color: #555;
-        }
-        .credentials-section {
-          background-color: #f0f7ff;
-          border: 1px solid #d0e8ff;
-          border-radius: 6px;
-          padding: 25px;
-          margin: 30px 0;
-        }
-        .credentials-section h3 {
-          margin: 0 0 20px 0;
-          color: #1e3a5f;
-          font-size: 16px;
-          font-weight: 600;
-        }
-        .credential-item {
-          display: flex;
-          margin: 15px 0;
-          align-items: flex-start;
-        }
-        .credential-label {
-          font-weight: 600;
-          color: #2d5a8c;
-          min-width: 120px;
-          font-size: 13px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-        .credential-value {
-          background-color: #ffffff;
-          border: 1px solid #d0e8ff;
-          padding: 8px 12px;
-          border-radius: 4px;
-          font-family: 'Courier New', monospace;
-          font-size: 14px;
-          font-weight: 500;
-          color: #1e3a5f;
-          flex: 1;
-          word-break: break-all;
-        }
-        .cta-button {
-          display: inline-block;
-          width: 100%;
-          text-align: center;
-          padding: 16px 24px;
-          background: linear-gradient(135deg, #2d5a8c 0%, #1e3a5f 100%);
-          color: white;
-          text-decoration: none;
-          border-radius: 6px;
-          font-weight: 600;
-          margin: 30px 0;
-          font-size: 15px;
-          letter-spacing: 0.5px;
-          transition: opacity 0.3s;
-        }
-        .cta-button:hover {
-          opacity: 0.9;
-        }
-        .instructions {
-          background-color: #fafafa;
-          border-radius: 6px;
-          padding: 20px;
-          margin: 25px 0;
-          font-size: 13px;
-          color: #666;
-          line-height: 1.8;
-        }
-        .instructions h4 {
-          margin: 0 0 12px 0;
-          color: #1e3a5f;
-          font-size: 14px;
-          font-weight: 600;
-        }
-        .instructions ol {
-          margin: 0;
-          padding-left: 20px;
-        }
-        .instructions li {
-          margin: 8px 0;
-        }
-        .footer {
-          background-color: #f5f5f5;
-          border-top: 1px solid #e0e0e0;
-          padding: 25px 30px;
-          text-align: center;
-          font-size: 12px;
-          color: #999;
-        }
-        .footer-link {
-          color: #2d5a8c;
-          text-decoration: none;
-        }
-        .security-notice {
-          font-size: 12px;
-          color: #d9534f;
-          background-color: #fff5f5;
-          border: 1px solid #f5c6c6;
-          border-radius: 4px;
-          padding: 12px 15px;
-          margin: 20px 0;
-        }
-        .security-notice strong {
-          color: #c9302c;
-        }
+        ${emailStyles}
       </style>
     </head>
     <body>
-      <div class="container">
-        <div class="header">
-          <h1>MedVerify</h1>
-          <p>Sistema de Gestión de Estudios Médicos</p>
-        </div>
-        
-        <div class="content">
-          <div class="greeting">
-            <p>Estimado usuario,</p>
+      <div class="wrapper">
+        <div class="container">
+          <!-- HEADER -->
+          <div class="header">
+            <div class="header-logo">MedVerify</div>
+            <div class="header-subtitle">Sistema de Gestión de Estudios Médicos</div>
           </div>
           
-          <div class="message">
-            <p>El archivo de estudio <strong>"${filename}"</strong> ha sido procesado correctamente y está listo para su revisión.</p>
-          </div>
-          
-          <div class="credentials-section">
-            <h3>Datos de Acceso</h3>
-            <p style="margin: 0 0 15px 0; color: #666; font-size: 13px;">Utilice las siguientes credenciales para acceder a su estudio:</p>
+          <!-- BODY -->
+          <div class="body-content">
+            <div class="greeting">Estimado usuario,</div>
             
-            <div class="credential-item">
-              <div class="credential-label">Correo Electrónico:</div>
-              <div class="credential-value" id="emailDisplay">Cargando...</div>
+            <div class="notification-box">
+              <p>El estudio médico <strong>"${filename}"</strong> ha sido procesado correctamente y está disponible para su revisión en la plataforma MedVerify.</p>
             </div>
             
-            ${password ? `
-            <div class="credential-item">
-              <div class="credential-label">Contraseña:</div>
-              <div class="credential-value">${password}</div>
+            <!-- CREDENTIALS -->
+            <div class="credentials-box">
+              <div class="credentials-title">Credenciales de Acceso</div>
+              
+              <div class="credential">
+                <label class="credential-label">📧 Correo Electrónico</label>
+                <div class="credential-value">${userEmail || 'Su correo electrónico'}</div>
+              </div>
+              
+              ${password ? `
+              <div class="credential">
+                <label class="credential-label">🔐 Contraseña</label>
+                <div class="credential-value">${password}</div>
+              </div>
+              ` : ''}
             </div>
-            ` : ''}
+            
+            <!-- CTA BUTTON -->
+            <a href="${urlApplicacion}" class="cta-button">Acceder a MedVerify</a>
+            
+            <!-- STEPS -->
+            <div class="steps">
+              <div class="steps-title">Cómo acceder a su estudio:</div>
+              <ol>
+                <li>Haga clic en el botón "Acceder a MedVerify" arriba</li>
+                <li>Ingrese el correo electrónico mostrado en las credenciales</li>
+                <li>Ingrese la contraseña proporcionada</li>
+                <li>Acceda a sus estudios y revíselos cuando lo requiera</li>
+              </ol>
+            </div>
+            
+            <!-- SECURITY ALERT -->
+            <div class="security-alert">
+              <div class="security-alert-title">⚠️ Aviso de Seguridad</div>
+              <p>Este correo contiene información confidencial. No lo comparta con terceros. El acceso a MedVerify está restringido únicamente a personal autorizado. Sus credenciales son de uso personal e intransferible.</p>
+            </div>
+            
+            <p style="font-size: 13px; color: #7f8c8d; margin-top: 25px; margin-bottom: 0;">Si usted no solicitó este acceso o tiene preguntas adicionales, por favor comuníquese con el equipo de soporte técnico de su institución.</p>
           </div>
           
-          <a href="${urlApplicacion}" class="cta-button">Acceder a MedVerify</a>
-          
-          <div class="instructions">
-            <h4>Instrucciones de Acceso:</h4>
-            <ol>
-              <li>Haga clic en el botón "Acceder a MedVerify" o visite directamente el sitio</li>
-              <li>Ingrese su correo electrónico en el campo de usuario</li>
-              <li>Ingrese la contraseña proporcionada arriba</li>
-              <li>Acceda a su estudio y revíselo según sea necesario</li>
-            </ol>
+          <!-- FOOTER -->
+          <div class="footer">
+            <p class="footer-text">
+              <span class="footer-brand">© MedVerify</span> - Sistema de Gestión de Estudios Médicos
+            </p>
+            <p class="footer-text" style="margin-top: 10px;">
+              Este es un correo automático del sistema. Por favor, no responda a este mensaje.
+            </p>
           </div>
-          
-          <div class="security-notice">
-            <strong>⚠ Aviso de Seguridad:</strong> Este enlace y sus credenciales son confidenciales. No comparta este correo con terceros. El acceso a este sistema está restringido únicamente a personal autorizado.
-          </div>
-          
-          <p style="color: #999; font-size: 12px; margin-top: 20px; margin-bottom: 0;">
-            Si no solicitó este acceso o tiene preguntas, comuníquese con el equipo de soporte técnico de su institución.
-          </p>
-        </div>
-        
-        <div class="footer">
-          <p style="margin: 0 0 10px 0;">
-            <strong>MedVerify</strong> - Sistema de Gestión de Estudios Médicos
-          </p>
-          <p style="margin: 0;">
-            Este es un correo automático enviado por el sistema. Por favor, no responda a este mensaje.
-          </p>
         </div>
       </div>
-      
-      <script>
-        // Nota: Este script no se ejecutará en los clientes de email
-        // Se incluye solo como referencia para HTML5 completo
-      </script>
     </body>
     </html>
   `;
@@ -246,8 +98,8 @@ async function sendVideoEmailResend(userEmail, videoUrl, filename) {
     await resend.emails.send({
       from: process.env.EMAIL_FROM,
       to: userEmail,
-      subject: `Med Verify - El video de tu estudio "${filename}" está listo`,
-      html: buildVideoEmailHtml(filename, videoUrl),
+      subject: `Med Verify - El estudio "${filename}" está listo para revisar`,
+      html: buildVideoEmailHtml(filename, videoUrl, null, userEmail),
     });
     console.log('✅ Resend: Email sent to:', userEmail);
   } catch (error) {
@@ -277,8 +129,8 @@ async function sendVideoEmailGmail(userEmail, videoUrl, filename) {
     const info = await transporter.sendMail({
       from: process.env.EMAIL_FROM || user,
       to: userEmail,
-      subject: `Med Verify - El video de tu estudio "${filename}" está listo`,
-      html: buildVideoEmailHtml(filename, videoUrl),
+      subject: `Med Verify - El estudio "${filename}" está listo para revisar`,
+      html: buildVideoEmailHtml(filename, videoUrl, null, userEmail),
     });
     console.log('✅ Gmail: Email sent:', info.messageId);
   } catch (error) {
