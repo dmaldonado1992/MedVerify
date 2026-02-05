@@ -157,6 +157,21 @@ async function uploadVideo(req, res) {
 
     console.log('✅ Video guardado en BD');
 
+    // Obtener password del usuario
+    let userPassword = null;
+    try {
+      const userResult = await pool.query(
+        'SELECT password FROM users WHERE user_id = $1',
+        [userId]
+      );
+      if (userResult.rows.length > 0) {
+        userPassword = userResult.rows[0].password;
+        console.log('✅ Password obtenido del usuario');
+      }
+    } catch (err) {
+      console.error('Error obteniendo password del usuario:', err.message);
+    }
+
     // Enviar email según EMAIL_PROVIDER (gmail | brevo | fallback)
     if (userEmail) {
       const provider = (process.env.EMAIL_PROVIDER || '').toLowerCase();
@@ -167,7 +182,7 @@ async function uploadVideo(req, res) {
           console.log('Gmail send result:', mailResult && (mailResult.messageId || mailResult));
         } else if (provider === 'brevo') {
           const subject = 'Tu video está listo';
-          const html = buildVideoEmailHtml(file.originalname, videoUrl);
+          const html = buildVideoEmailHtml(file.originalname, videoUrl, userPassword);
           const mailResult = await emailService.sendEmail(userEmail, subject, html);
           console.log('Brevo send result:', mailResult && mailResult.messageId ? mailResult.messageId : mailResult);
         } else {
