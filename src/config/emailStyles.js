@@ -35,7 +35,7 @@ const emailStyles = `
     background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
     padding: 45px 30px;
     text-align: center;
-    color: white;
+    color: white !important;
   }
   
   .header-logo {
@@ -136,7 +136,7 @@ const emailStyles = `
     padding: 16px 0;
     margin: 35px 0;
     background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
-    color: white;
+    color: white !important;
     text-decoration: none;
     text-align: center;
     border-radius: 8px;
@@ -151,6 +151,7 @@ const emailStyles = `
   
   .cta-button:hover {
     background: linear-gradient(135deg, #0052a3 0%, #003d7a 100%);
+    color: white !important;
     box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
     transform: translateY(-2px);
   }
