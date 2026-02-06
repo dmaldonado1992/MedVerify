@@ -198,4 +198,8 @@ function logEmailConfig() {
   console.log('  EMAIL_FROM:', process.env.EMAIL_FROM || '❌ Missing');
 }
 
-module.exports.logEmailConfig = logEmailConfig;
+module.exports = {
+  logEmailConfig,
+  buildVideoEmailHtml,
+  sendVideoEmail
+};

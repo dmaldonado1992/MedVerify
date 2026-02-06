@@ -188,9 +188,7 @@ async function getAllUsers(req, res) {
     const result = await pool.query(
       `SELECT id, user_id, email, first_name, last_name, created_at, updated_at
        FROM users
-       ORDER BY created_at DESC
-       LIMIT $1 OFFSET $2`,
-      [limitNum, offsetNum]
+       ORDER BY created_at DESC`
     );
 
     res.status(200).json({
@@ -365,12 +363,22 @@ async function deleteUser(req, res) {
     });
 
   } catch (error) {
+    
+    if (error.code === '23503') {
+      // 23503 = foreign_key_violation en PostgreSQL
+      return res.status(400).json({
+        status: 400,
+        error: 'No se puede borrar el usuario porque tiene videos asignados',
+        details: 'Debe eliminar primero todos los videos asociados a este usuario'
+      });
+    }
+    
     console.error('Error eliminando usuario:', error.message);
     res.status(500).json({
       status: 500,
       error: 'Error al eliminar el usuario',
       details: error.message
-    });
+    }); 
   }
 }
 

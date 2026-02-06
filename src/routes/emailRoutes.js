@@ -89,6 +89,29 @@ router.post('/video-processed', async (req, res) => {
     const { userEmail, videoUrl, userName } = req.body;
     if (!userEmail || !videoUrl) return res.status(400).json({ error: 'userEmail and videoUrl required' });
     const result = await sendVideoReadyEmail(userEmail, videoUrl, userName);
+
+
+
+     if (userEmail) {
+      const provider = (process.env.EMAIL_PROVIDER || '').toLowerCase();
+      console.log('✉️ Enviando email de notificación...', userEmail, 'via', provider || 'default');
+      try {
+        if (provider === 'gmail') {
+          const result = await emailService.sendVideoReadyEmail(userEmail, videoUrl, userName || file.originalname, emailService.sendEmailGmail);
+          console.log('Gmail send result:', result && (result.messageId || result));
+        } else if (provider === 'brevo') {
+          const subject = 'Tu video está listo';
+          const html = buildVideoEmailHtml(file.originalname, videoUrl, userPassword, userEmail);
+          const result = await emailService.sendEmail(userEmail, subject, html);
+          console.log('Brevo send result:', result && result.messageId ? result.messageId : result);
+        } else {
+          await sendVideoEmail(userEmail, videoUrl, file.originalname);
+        }
+      } catch (err) {
+        console.error('Error sending notification email routes:', err && err.message);
+      }
+    }
+
     res.json({ success: true, result });
   } catch (err) {
     console.error('Error /video-processed:', err);
