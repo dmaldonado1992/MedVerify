@@ -174,15 +174,15 @@ async function getUserByEmail(req, res) {
 // ============================================
 async function getAllUsers(req, res) {
   try {
-    const { limit = 10, offset = 0 } = req.query;
-
-    // Validar parámetros
-    const limitNum = Math.min(parseInt(limit) || 10, 100);
-    const offsetNum = Math.max(parseInt(offset) || 0, 0);
+    const { limit = 10, offset = 0 } = req.query;  
 
     // Obtener total de usuarios
     const countResult = await pool.query('SELECT COUNT(*) FROM users');
     const totalUsers = parseInt(countResult.rows[0].count);
+
+     // Validar parámetros
+    const limitNum = parseInt(countResult.rows[0].count);
+    const offsetNum = parseInt(countResult.rows[0].count);
 
     // Obtener usuarios
     const result = await pool.query(
