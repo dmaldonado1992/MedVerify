@@ -90,7 +90,7 @@ router.post('/video-processed', async (req, res) => {
     try {
       const { userEmail, videoUrl, userName } = req.body;
       if (!userEmail || !videoUrl) return res.status(400).json({ error: 'userEmail and videoUrl required' });
-      const result = null;   
+      let result = null;   
 
       if (userEmail) {
         let userPassword = null;
@@ -111,15 +111,15 @@ router.post('/video-processed', async (req, res) => {
       console.log('✉️ Enviando email de notificación...', userEmail, 'via', provider || 'default');
       try {
         if (provider === 'gmail') {
-          const result = await emailService.sendVideoReadyEmail(userEmail, videoUrl, userName || 'Estudio', emailService.sendEmailGmail);
+          result = await emailService.sendVideoReadyEmail(userEmail, videoUrl, userName || 'Estudio', emailService.sendEmailGmail);
           console.log('Gmail send result:', result && (result.messageId || result));
         } else if (provider === 'brevo') {
           const subject = 'Tu video está listo';
           const html = buildVideoEmailHtml(userName || 'Estudio', videoUrl, userPassword, userEmail);
-          const result = await emailService.sendEmail(userEmail, subject, html);
+          result = await emailService.sendEmail(userEmail, subject, html);
           console.log('Brevo send result:', result && result.messageId ? result.messageId : result);
         } else {
-          const result = await sendVideoEmail(userEmail, videoUrl, userName || 'Estudio');
+          result = await sendVideoEmail(userEmail, videoUrl, userName || 'Estudio');
           console.log('Default send result:', result && (result.messageId || result));
         }
       } catch (err) {
