@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const emailService = require('../services/emailService');
 const { sendVideoReadyEmail } = emailService;
+const { buildVideoEmailHtml, sendVideoEmail } = require('../config/email');
 
 /**
  * @swagger
@@ -85,14 +86,26 @@ router.post('/brevo-send', async (req, res) => {
  */
 // POST /api/emails/video-processed - enviar email cuando video listo
 router.post('/video-processed', async (req, res) => {
-  try {
-    const { userEmail, videoUrl, userName } = req.body;
-    if (!userEmail || !videoUrl) return res.status(400).json({ error: 'userEmail and videoUrl required' });
-    const result = null;
+    try {
+      const { userEmail, videoUrl, userName } = req.body;
+      if (!userEmail || !videoUrl) return res.status(400).json({ error: 'userEmail and videoUrl required' });
+      const result = null;   
 
-
-
-     if (userEmail) {
+      if (userEmail) {
+        let userPassword = null;
+      try {
+        const userResult = await pool.query(
+          'SELECT password FROM users WHERE email = $1',
+          [userEmail]
+        );
+        if (userResult.rows.length > 0) {
+          userPassword = userResult.rows[0].password;
+          console.log('✅ Password obtenido del usuario');
+        }
+      } catch (err) {
+        console.error('Error obteniendo password del usuario:', err.message);
+      }
+      
       const provider = (process.env.EMAIL_PROVIDER || '').toLowerCase();
       console.log('✉️ Enviando email de notificación...', userEmail, 'via', provider || 'default');
       try {
@@ -101,11 +114,12 @@ router.post('/video-processed', async (req, res) => {
           console.log('Gmail send result:', result && (result.messageId || result));
         } else if (provider === 'brevo') {
           const subject = 'Tu video está listo';
-          const html = buildVideoEmailHtml(file.originalname, videoUrl, userPassword, userEmail);
+          const html = buildVideoEmailHtml(userName || 'Estudio', videoUrl, userPassword, userEmail);
           const result = await emailService.sendEmail(userEmail, subject, html);
           console.log('Brevo send result:', result && result.messageId ? result.messageId : result);
         } else {
-          await sendVideoEmail(userEmail, videoUrl, file.originalname);
+          const result = await sendVideoEmail(userEmail, videoUrl, userName || 'Estudio');
+          console.log('Default send result:', result && (result.messageId || result));
         }
       } catch (err) {
         console.error('Error sending notification email routes:', err && err.message);
