@@ -125,8 +125,9 @@ async function uploadVideo(req, res) {
     }
 
     const timestamp = Date.now();
+    const today = new Date().toISOString().split('T')[0];
     const extension = file.originalname.split('.').pop().toLowerCase();
-    const videoKey = `users/${userId}/videos/${timestamp}.${extension}`;
+    const videoKey = `users/${userEmail}/videos/${timestamp}.${extension}`;
 
     console.log('📤 Subiendo video a Wasabi...');
     console.log(`   Key: ${videoKey}`);
