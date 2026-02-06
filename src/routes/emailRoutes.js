@@ -88,7 +88,7 @@ router.post('/video-processed', async (req, res) => {
   try {
     const { userEmail, videoUrl, userName } = req.body;
     if (!userEmail || !videoUrl) return res.status(400).json({ error: 'userEmail and videoUrl required' });
-    const result = await sendVideoReadyEmail(userEmail, videoUrl, userName);
+    const result = null;
 
 
 
