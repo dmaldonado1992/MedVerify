@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const pool = require('../config/database');
 const emailService = require('../services/emailService');
 const { sendVideoReadyEmail } = emailService;
 const { buildVideoEmailHtml, sendVideoEmail } = require('../config/email');
@@ -105,12 +106,12 @@ router.post('/video-processed', async (req, res) => {
       } catch (err) {
         console.error('Error obteniendo password del usuario:', err.message);
       }
-      
+
       const provider = (process.env.EMAIL_PROVIDER || '').toLowerCase();
       console.log('✉️ Enviando email de notificación...', userEmail, 'via', provider || 'default');
       try {
         if (provider === 'gmail') {
-          const result = await emailService.sendVideoReadyEmail(userEmail, videoUrl, userName || file.originalname, emailService.sendEmailGmail);
+          const result = await emailService.sendVideoReadyEmail(userEmail, videoUrl, userName || 'Estudio', emailService.sendEmailGmail);
           console.log('Gmail send result:', result && (result.messageId || result));
         } else if (provider === 'brevo') {
           const subject = 'Tu video está listo';
@@ -165,21 +166,6 @@ router.post('/video-processed', async (req, res) => {
  *         description: Parámetros faltantes
  *       500:
  *         description: Error al enviar email
- */
-router.post('/gmail-send', async (req, res) => {
-  try {
-    const { userEmail, videoUrl, userName } = req.body;
-    if (!userEmail || !videoUrl) return res.status(400).json({ error: 'userEmail and videoUrl required' });
-    const result = await emailService.sendVideoReadyEmail(userEmail, videoUrl, userName, emailService.sendEmailGmail);
-    res.json({ success: true, result });
-  } catch (err) {
-    console.error('Error /gmail-send:', err);
-    res.status(500).json({ success: false, error: err.message || String(err) });
-  }
-});
-/**
- * POST /api/emails/gmail-send
- * Reutiliza la plantilla de `sendVideoReadyEmail` pero envía vía Gmail.
  */
 router.post('/gmail-send', async (req, res) => {
   try {
