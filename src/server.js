@@ -24,7 +24,8 @@ const defaultOrigins = [
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3000',
   'https://video-backend-y013.onrender.com',
-  'https://medverifyfront.onrender.com'
+  'https://medverifyfront.onrender.com',
+  'https://medverifyfront-h2xw.onrender.com'
 ];
 const allowedOrigins = Array.from(new Set([...envOrigins, ...defaultOrigins]));
 const corsOptions = {
